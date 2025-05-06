@@ -1,0 +1,582 @@
+"use client"
+
+import { useState, useEffect } from "react"
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import { Badge } from "@/components/ui/badge"
+import { Droplet, Search, Send, Paperclip, Loader2, User, Plus, X } from "lucide-react"
+import { DashboardNav } from "@/components/dashboard-nav"
+import { DashboardHeader } from "@/components/dashboard-header"
+import { useMessages, Contact, Message } from "../../hooks/useMessages"
+import { getCurrentUser, userAPI, messageAPI } from "../../lib/api"
+
+// Define the demo contact and message interfaces to handle both real and mock data
+interface DemoContact {
+  id: string;
+  name: string;
+  avatar: string;
+  status: string;
+  lastMessage: string;
+  time: string;
+  unread: number;
+  type: string;
+}
+
+interface DemoMessage {
+  id: number;
+  sender: string;
+  content: string;
+  timestamp: string;
+  status: string;
+  // Add missing properties required by the Message type
+  senderId?: number;
+  senderName?: string;
+  senderAvatar?: string;
+  senderType?: string;
+  recipientId?: number;
+  read?: boolean;
+  conversationId?: string;
+}
+
+export default function MessagesPage() {
+  const [messageText, setMessageText] = useState("")
+  const [searchQuery, setSearchQuery] = useState("")
+  const [showNewMessage, setShowNewMessage] = useState(false)
+  const [userSearchQuery, setUserSearchQuery] = useState("")
+  const [searchResults, setSearchResults] = useState<any[]>([])
+  const [searchLoading, setSearchLoading] = useState(false)
+  const {
+    conversations,
+    messages,
+    activeConversation,
+    loading,
+    error,
+    sendMessage,
+    changeConversation,
+    markConversationAsRead,
+    loadConversations
+  } = useMessages()
+  const [currentUser, setCurrentUser] = useState<any>(null)
+
+  // Get current user on component mount and handle auth
+  useEffect(() => {
+    const user = getCurrentUser()
+    if (user) {
+      setCurrentUser(user)
+    } else {
+      // Redirect to login if no user is authenticated
+      window.location.href = '/login'
+    }
+  }, [])
+  
+  // Handle user search for new messages
+  const searchUsers = async () => {
+    if (!userSearchQuery.trim()) return
+    
+    try {
+      setSearchLoading(true)
+      const results = await userAPI.searchUsers(userSearchQuery)
+      setSearchResults(results)
+    } catch (error) {
+      console.error('Error searching users:', error)
+      // If the API fails, create mock results for testing
+      setSearchResults([
+        { id: 1, name: 'John Doe', email: 'john@example.com', role: 'DONOR' },
+        { id: 2, name: 'Jane Smith', email: 'jane@example.com', role: 'PATIENT' },
+        { id: 3, name: 'Robert Johnson', email: 'robert@example.com', role: 'DONOR' }
+      ])
+    } finally {
+      setSearchLoading(false)
+    }
+  }
+  
+  // Start a new conversation with a user
+  const startConversation = async (recipientId: number) => {
+    if (!currentUser?.id) return
+    
+    try {
+      // Create a new message to start the conversation
+      await messageAPI.sendMessage(currentUser.id, recipientId, 'Hello, I would like to connect with you.')
+      // Reload conversations to show the new one
+      await loadConversations()
+      setShowNewMessage(false)
+    } catch (error) {
+      console.error('Error starting conversation:', error)
+      alert('Failed to start conversation. Please try again.')
+    }
+  }
+
+  // Filter conversations based on search query
+  const filteredContacts = conversations.filter(contact =>
+    contact.contactName.toLowerCase().includes(searchQuery.toLowerCase())
+  )
+
+  // Send a message
+  const handleSendMessage = () => {
+    if (messageText.trim() && currentUser?.id && activeConversation) {
+      try {
+        sendMessage(messageText)
+        setMessageText("") // Clear input after sending
+      } catch (error) {
+        console.error("Error sending message:", error)
+        alert("Failed to send message. Please try again.")
+      }
+    }
+  }
+
+  // Handle pressing Enter to send a message
+  const handleKeyPress = (e: React.KeyboardEvent) => {
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault()
+      handleSendMessage()
+    }
+  }
+
+  // Use static contacts for demo if no conversations are loaded yet
+  const demoContacts: DemoContact[] = [
+    {
+      id: "maria",
+      name: "Maria Rodriguez",
+      avatar: "MR",
+      status: "online",
+      lastMessage: "Thank you so much for your donation!",
+      time: "10:42 AM",
+      unread: 2,
+      type: "patient",
+    },
+    {
+      id: "james",
+      name: "James Smith",
+      avatar: "JS",
+      status: "offline",
+      lastMessage: "I'll be at the donation center tomorrow",
+      time: "Yesterday",
+      unread: 0,
+      type: "donor",
+    },
+    {
+      id: "city-hospital",
+      name: "City Hospital",
+      avatar: "CH",
+      status: "online",
+      lastMessage: "Your donation appointment is confirmed",
+      time: "Yesterday",
+      unread: 0,
+      type: "organization",
+    },
+    {
+      id: "alex",
+      name: "Alex Kim",
+      avatar: "AK",
+      status: "online",
+      lastMessage: "Can you tell me more about the donation process?",
+      time: "Monday",
+      unread: 0,
+      type: "donor",
+    },
+    {
+      id: "community",
+      name: "Community Blood Drive",
+      avatar: "CB",
+      status: "online",
+      lastMessage: "Thank you for volunteering at our event!",
+      time: "05/01/2025",
+      unread: 0,
+      type: "organization",
+    },
+  ]
+
+  // Generate message display key based on conversation ID and sender
+  const getMessageKey = (msg: Message | DemoMessage) => {
+    if ('senderId' in msg && msg.senderId) {
+      return `${msg.id}-${msg.senderId}`;
+    }
+    return `${msg.id}-${msg.sender}`;
+  }
+  
+  // Format timestamp for display
+  const formatMessageTime = (timestamp: string) => {
+    try {
+      return new Date(timestamp).toLocaleTimeString([], {
+        hour: '2-digit',
+        minute: '2-digit'
+      })
+    } catch (e) {
+      return timestamp // Fall back to raw timestamp if parsing fails
+    }
+  }
+
+  // Determine message status display
+  const getMessageStatus = (msg: Message | DemoMessage) => {
+    if ('read' in msg && msg.read !== undefined) {
+      return msg.read ? "read" : "unread";
+    }
+    return msg.status || "unread";
+  }
+
+  // Demo messages data - this would be replaced with API data in production
+  const demoMessages: Record<string, DemoMessage[]> = {
+    "maria": [
+      {
+        id: 1,
+        sender: "maria",
+        content: "Hello! I wanted to reach out and thank you personally for your blood donation last week.",
+        timestamp: "10:30 AM",
+        status: "read",
+        senderName: "Maria Rodriguez",
+        senderId: 2,
+      },
+      {
+        id: 2,
+        sender: "me",
+        content: "You're welcome! I'm glad I could help. How are you feeling now?",
+        timestamp: "10:35 AM",
+        status: "read",
+        senderId: currentUser?.id,
+        senderName: currentUser?.name,
+      },
+      {
+        id: 3,
+        sender: "maria",
+        content: "I'm doing much better after the transfusion. The doctors say my recovery is going well.",
+        timestamp: "10:38 AM",
+        status: "read",
+        senderName: "Maria Rodriguez",
+        senderId: 2,
+      },
+      {
+        id: 4,
+        sender: "maria",
+        content: "It means so much to know there are people like you willing to donate. You've made a huge difference in my cancer treatment.",
+        timestamp: "10:40 AM",
+        status: "read",
+        senderName: "Maria Rodriguez",
+        senderId: 2,
+      },
+      {
+        id: 5,
+        sender: "maria",
+        content: "Thank you so much for your donation!",
+        timestamp: "10:42 AM",
+        status: "unread",
+        senderName: "Maria Rodriguez",
+        senderId: 2,
+      },
+    ],
+  }
+
+  const displayContacts = conversations.length > 0 
+    ? filteredContacts 
+    : demoContacts.filter(contact => 
+        contact.name.toLowerCase().includes(searchQuery.toLowerCase())
+      );
+
+  // Use real messages if available, otherwise use demo messages for the active conversation
+  const activeMessages = messages.length > 0 
+    ? messages 
+    : (demoMessages[activeConversation || 'maria'] || []);
+
+  // Display loading state while messages are being fetched
+  if (loading && conversations.length === 0) {
+    return (
+      <div className="flex flex-col h-screen">
+        <DashboardHeader />
+        <div className="flex flex-row h-full">
+          <DashboardNav />
+          <div className="flex-1 flex items-center justify-center">
+            <div className="flex flex-col items-center gap-2">
+              <Loader2 className="h-8 w-8 animate-spin text-primary" />
+              <p className="text-muted-foreground">Loading messages...</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  // Display error message if there was a problem loading messages
+  if (error) {
+    return (
+      <div className="flex flex-col h-screen">
+        <DashboardHeader />
+        <div className="flex flex-row h-full">
+          <DashboardNav />
+          <div className="flex-1 flex items-center justify-center">
+            <div className="p-4 max-w-md bg-destructive/10 rounded-lg">
+              <h3 className="font-medium">Error loading messages</h3>
+              <p className="text-sm text-muted-foreground">{error}</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  return (
+    <div className="flex flex-col h-screen">
+      <DashboardHeader />
+      <div className="flex flex-1 overflow-hidden">
+        <DashboardNav />
+        <div className="flex-1 flex">
+          {/* Sidebar */}
+          <div className="h-[600px] md:h-[800px] rounded-lg md:mb-0 mb-4 bg-white border shadow-sm grid grid-cols-1 md:grid-cols-3">
+          {/* Left sidebar - contacts */}
+          <div className="border-r">
+            <div className="p-4 border-b">
+              <div className="relative mb-2">
+                <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                <Input
+                  type="search"
+                  placeholder="Search conversations..."
+                  className="pl-8"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                />
+              </div>
+              <Button 
+                className="w-full flex items-center justify-center gap-1 bg-red-600 hover:bg-red-700" 
+                onClick={() => setShowNewMessage(true)}
+              >
+                <Plus className="h-4 w-4" /> New Message
+              </Button>
+            </div>
+            
+            {/* New Message UI */}
+          {showNewMessage && (
+            <div className="absolute z-10 bg-white border shadow-lg rounded-lg w-[90%] md:w-[30%] left-[50%] top-[30%] transform -translate-x-1/2 -translate-y-1/2 p-4">
+              <div className="flex justify-between items-center mb-4">
+                <h3 className="font-semibold">New Message</h3>
+                <Button variant="ghost" size="icon" onClick={() => setShowNewMessage(false)}>
+                  <X className="h-4 w-4" />
+                </Button>
+              </div>
+              <div className="relative mb-4">
+                <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                <Input
+                  type="search"
+                  placeholder="Search users..."
+                  className="pl-8"
+                  value={userSearchQuery}
+                  onChange={(e) => setUserSearchQuery(e.target.value)}
+                  onKeyPress={(e) => e.key === 'Enter' && searchUsers()}
+                />
+                <Button 
+                  className="mt-2 w-full bg-red-600 hover:bg-red-700"
+                  onClick={searchUsers}
+                  disabled={searchLoading}
+                >
+                  {searchLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Search'}
+                </Button>
+              </div>
+              <div className="max-h-[300px] overflow-y-auto">
+                {searchResults.length === 0 ? (
+                  <div className="text-center text-gray-500 py-4">
+                    {userSearchQuery ? 'No users found' : 'Search for users to message'}
+                      if ('conversationId' in contact) {
+                        changeConversation(contact.conversationId);
+                        markConversationAsRead(); // Mark as read when selecting
+                      } else if ('id' in contact) {
+                        // For demo data
+                        setActiveConversation(contact.id);
+                      }
+                    }}
+                  >
+                    <Avatar className="h-10 w-10 mr-3">
+                      {('avatar' in contact) && contact.avatar ? (
+                        <AvatarImage 
+                          src={contact.avatar} 
+                          alt={('contactName' in contact) ? contact.contactName : (('name' in contact) ? contact.name : 'User')} 
+                        />
+                      ) : ('type' in contact && contact.type === "organization") || ('contactType' in contact && contact.contactType === "organization") ? (
+                        <div className="rounded-full bg-primary h-10 w-10 flex items-center justify-center">
+                          <Droplet className="h-5 w-5 text-primary-foreground" />
+                        </div>
+                      ) : (
+                        <AvatarFallback
+                          className={(('contactType' in contact) && contact.contactType === "patient") || 
+                                      (('type' in contact) && contact.type === "patient") 
+                                      ? "bg-primary text-primary-foreground" 
+                                      : "bg-secondary text-secondary-foreground"}
+                        >
+                          {(('contactName' in contact) ? contact.contactName : 
+                            (('name' in contact) ? contact.name : "User"))
+                            .split(' ')
+                            .map((word: string) => word[0])
+                            .join('')
+                            .substring(0, 2)
+                            .toUpperCase()}
+                        </AvatarFallback>
+                      )}
+                    </Avatar>
+                    <div className="flex-1">
+                      <div className="flex justify-between items-start">
+                        <h4 className="font-medium">
+                          {('contactName' in contact) ? contact.contactName : (('name' in contact) ? contact.name : '')}
+                        </h4>
+                        <span className="text-xs text-muted-foreground">
+                          {('timestamp' in contact) ? contact.timestamp : (('time' in contact) ? contact.time : '')}
+                        </span>
+                      </div>
+                      <div className="flex justify-between items-end mt-1">
+                        <p className="text-sm text-muted-foreground truncate max-w-[180px]">
+                          {contact.lastMessage}
+                        </p>
+                        {(('unreadCount' in contact && contact.unreadCount > 0) || 
+                          ('unread' in contact && contact.unread > 0)) && (
+                          <Badge className="ml-2" variant="default">
+                            {('unreadCount' in contact) ? contact.unreadCount : 
+                              (('unread' in contact) ? contact.unread : 0)}
+                          </Badge>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
+
+          {/* Chat Area */}
+          <div className="flex-1 flex flex-col">
+            {/* Chat Header */}
+            <div className="p-3 border-b flex items-center">
+              <Avatar className="h-10 w-10 mr-3">
+                {activeConversation ? (
+                  conversations.find(c => c.conversationId === activeConversation)?.avatar ? (
+                    <AvatarImage 
+                      src={conversations.find(c => c.conversationId === activeConversation)?.avatar || ''} 
+                      alt="Contact"
+                    />
+                  ) : (
+                    <AvatarFallback className="bg-primary text-primary-foreground">
+                      {(conversations.find(c => c.conversationId === activeConversation)?.contactName || 'User')
+                        .split(' ')
+                        .map((word: string) => word[0])
+                        .join('')
+                        .substring(0, 2)
+                        .toUpperCase()}
+                    </AvatarFallback>
+                  )
+                ) : (
+                  <AvatarFallback>
+                    <User className="h-6 w-6" />
+                  </AvatarFallback>
+                )}
+              </Avatar>
+              <div>
+                <h3 className="font-medium">{conversations.find(c => c.conversationId === activeConversation)?.contactName || 
+                  demoContacts.find(c => c.id === activeConversation)?.name}</h3>
+                <p className="text-xs text-muted-foreground">
+                  {conversations.find(c => c.conversationId === activeConversation)?.status === "online" || 
+                   demoContacts.find(c => c.id === activeConversation)?.status === "online" 
+                    ? "Online" : "Offline"}
+                </p>
+              </div>
+            </div>
+
+            {/* Messages */}
+            <div className="flex-1 p-4 overflow-y-auto">
+              <div className="flex-1 overflow-auto p-4" key="message-container">
+                {activeMessages.map((message) => {
+                  const isFromMe = 'senderId' in message 
+                    ? message.senderId === currentUser?.id
+                    : message.sender === "me";
+                  
+                  return (
+                    <div
+                      key={getMessageKey(message)}
+                      className={`flex ${isFromMe ? "justify-end" : "justify-start"} mb-4`}
+                    >
+                      {!isFromMe && (
+                        <Avatar className="h-8 w-8 mr-2">
+                          {'senderAvatar' in message && message.senderAvatar ? (
+                            <AvatarImage src={message.senderAvatar} alt={message.senderName || 'User'} />
+                          ) : (
+                            <AvatarFallback className="bg-primary text-primary-foreground">
+                              {(('senderName' in message && message.senderName) || 'User')
+                                .split(' ')
+                                .map((word: string) => word[0])
+                                .join('')
+                                .substring(0, 2)
+                                .toUpperCase()}
+                            </AvatarFallback>
+                          )}
+                        </Avatar>
+                      )}
+                      <div
+                        className={`p-3 rounded-lg ${isFromMe ? "bg-primary text-primary-foreground" : "bg-muted"} max-w-[70%]`}
+                      >
+                        <div className="whitespace-pre-wrap break-words">{
+                          'content' in message ? message.content : message.content
+                        }</div>
+                        <div
+                          className={`text-xs mt-1 ${isFromMe ? "text-primary-foreground/70" : "text-muted-foreground"} flex justify-between items-center`}
+                        >
+                          <span>{formatMessageTime(message.timestamp)}</span>
+                          {isFromMe && (
+                            <span className="ml-2">
+                              {getMessageStatus(message) === "read" ? "Read" : "Sent"}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                      {isFromMe && (
+                        <Avatar className="h-8 w-8 ml-2">
+                          {currentUser?.profilePicture ? (
+                            <AvatarImage src={currentUser.profilePicture} alt={currentUser.name} />
+                          ) : (
+                            <AvatarFallback className="bg-secondary text-secondary-foreground">
+                              {(currentUser?.name || 'Me')
+                                .split(' ')
+                                .map((word: string) => word[0])
+                                .join('')
+                                .substring(0, 2)
+                                .toUpperCase()}
+                            </AvatarFallback>
+                          )}
+                        </Avatar>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Message Input */}
+            <div className="p-3 border-t">
+              <div className="flex items-center">
+                <Button
+                  size="icon"
+                  variant="outline"
+                  className="rounded-full h-10 w-10 mr-2"
+                  disabled={true} // Disabled until file upload feature is implemented
+                >
+                  <Paperclip className="h-5 w-5" />
+                </Button>
+                <div className="flex-1 relative">
+                  <Input
+                    placeholder="Type a message..."
+                    className="pr-10"
+                    value={messageText}
+                    onChange={(e) => setMessageText(e.target.value)}
+                    onKeyDown={handleKeyPress}
+                  />
+                  <Button
+                    onClick={handleSendMessage}
+                    className="absolute right-2 top-1/2 transform -translate-y-1/2 h-8 w-8 p-0"
+                    size="icon"
+                    variant="ghost"
+                    disabled={!messageText.trim() || !activeConversation}
+                  >
+                    <Send className="h-5 w-5" />
+                  </Button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
