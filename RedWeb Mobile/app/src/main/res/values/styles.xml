@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Base application theme -->
+    <style name="AppTheme" parent="Theme.MaterialComponents.Light.NoActionBar">
+        <!-- Primary brand colors -->
+        <item name="colorPrimary">@color/red_primary</item>
+        <item name="colorPrimaryVariant">@color/red_dark</item>
+        <item name="colorOnPrimary">@color/white</item>
+
+
+        <!-- Secondary brand colors -->
+        <item name="colorSecondary">@color/red_primary</item>
+        <item name="colorSecondaryVariant">@color/red_dark</item>
+        <item name="colorOnSecondary">@color/white</item>
+
+        <!-- Status bar color -->
+        <item name="android:statusBarColor">@color/red_dark</item>
+
+
+        <!-- Font family -->
+        <!--  <item name="android:fontFamily">@font/poppins_regular</item> -->
+         <!--  <item name="fontFamily">@font/poppins_regular</item>-->
+    </style>
+
+    <style name="TabTextAppearance" parent="TextAppearance.Design.Tab">
+        <item name="android:textSize">14sp</item>
+        <item name="textAllCaps">false</item>
+    </style>
+
+    <style name="RedWebInputStyle" parent="Widget.MaterialComponents.TextInputLayout.OutlinedBox">
+        <item name="boxStrokeColor">#E32929</item> <!-- Red border -->
+        <item name="boxStrokeWidth">1dp</item>
+        <item name="boxStrokeWidthFocused">2dp</item> <!-- Bold on focus -->
+        <!--  <item name="boxBackgroundColor">#FFF0F0</item>  Light red background -->
+        <item name="hintTextColor">@color/black</item> <!-- Optional: black hint text -->
+    </style>
+
+    <style name="RedWebDropdownStyle" parent="Widget.MaterialComponents.TextInputLayout.OutlinedBox.ExposedDropdownMenu">
+        <item name="boxStrokeColor">#E32929</item> <!-- Red outline -->
+        <item name="boxStrokeWidth">1dp</item>
+        <item name="boxStrokeWidthFocused">2dp</item>
+        <!--  <item name="boxBackgroundColor">#FFF0F0</item>  Light background -->
+        <item name="hintTextColor">@color/black</item>
+    </style>
+
+</resources>

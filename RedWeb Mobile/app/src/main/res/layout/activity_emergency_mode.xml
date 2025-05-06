@@ -1,0 +1,636 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.drawerlayout.widget.DrawerLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/drawerLayout"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:fitsSystemWindows="true"
+    tools:context=".EmergencyModeActivity"
+    tools:openDrawer="start">
+
+    <!-- Main Content -->
+    <androidx.coordinatorlayout.widget.CoordinatorLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="#F5F5F5">
+
+        <!-- App Bar -->
+        <com.google.android.material.appbar.AppBarLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+
+
+            <androidx.appcompat.widget.Toolbar
+                android:id="@+id/toolbar"
+                android:layout_width="match_parent"
+                android:layout_height="?attr/actionBarSize"
+                android:background="#E32929"
+                android:elevation="4dp">
+
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical">
+
+                    <ImageButton
+                        android:id="@+id/menuButton"
+                        android:layout_width="48dp"
+                        android:layout_height="48dp"
+                        android:background="?attr/selectableItemBackgroundBorderless"
+                        android:contentDescription="Menu"
+                        android:padding="12dp"
+                        android:src="@drawable/ic_menu" />
+
+                    <ImageView
+                        android:id="@+id/logoImage"
+                        android:layout_width="32dp"
+                        android:layout_height="32dp"
+                        android:src="@drawable/blood_drop_icon" />
+
+
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="RedWeb"
+                        android:textColor="#FFF"
+                        android:textSize="18sp"
+                        android:textStyle="bold"
+                        android:layout_marginStart="8dp" />
+
+                    <FrameLayout
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content">
+
+                        <ImageButton
+                            android:id="@+id/notificationButton"
+                            android:layout_width="48dp"
+                            android:layout_height="48dp"
+                            android:background="?attr/selectableItemBackgroundBorderless"
+                            android:contentDescription="Notifications"
+                            android:padding="12dp"
+                            android:src="@drawable/ic_notifications" />
+
+                        <TextView
+                            android:id="@+id/notificationBadge"
+                            android:layout_width="16dp"
+                            android:layout_height="16dp"
+                            android:layout_gravity="top|end"
+                            android:layout_marginTop="8dp"
+                            android:layout_marginEnd="8dp"
+                            android:background="@drawable/circle_red_background"
+                            android:gravity="center"
+                            android:text="1"
+                            android:textColor="#FFFFFF"
+                            android:textSize="10sp" />
+                    </FrameLayout>
+
+                    <ImageView
+                        android:id="@+id/profileImage"
+                        android:layout_width="32dp"
+                        android:layout_height="32dp"
+                        android:layout_marginStart="8dp"
+                        android:background="@drawable/circle_light_gray_background"
+                        android:padding="4dp"
+                        android:src="@drawable/ic_profile" />
+                </LinearLayout>
+            </androidx.appcompat.widget.Toolbar>
+        </com.google.android.material.appbar.AppBarLayout>
+
+        <!-- Content -->
+        <androidx.core.widget.NestedScrollView
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            app:layout_behavior="@string/appbar_scrolling_view_behavior">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="16dp">
+
+                <!-- Title and Status -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:layout_marginBottom="16dp">
+
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="Emergency Mode"
+                        android:textColor="#000000"
+                        android:textSize="24sp"
+                        android:textStyle="bold" />
+
+                    <TextView
+                        android:id="@+id/statusBadge"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:background="#4A4A4A"
+                        android:paddingStart="12dp"
+                        android:paddingEnd="12dp"
+                        android:paddingTop="6dp"
+                        android:paddingBottom="6dp"
+                        android:text="Inactive"
+                        android:textColor="#FFFFFF"
+                        android:textSize="14sp"
+                        android:textStyle="bold"
+                        android:layout_gravity="center_vertical"
+                        android:layout_marginStart="8dp"
+                        android:elevation="2dp"
+                        android:translationZ="2dp"
+                        android:stateListAnimator="@null"
+                        android:gravity="center"
+                        android:minWidth="80dp"
+                        android:minHeight="32dp"
+                        android:radius="4dp" />
+                </LinearLayout>
+
+                <!-- Status Info Card -->
+                <androidx.cardview.widget.CardView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="16dp"
+                    app:cardCornerRadius="8dp"
+                    app:cardElevation="2dp">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:padding="16dp">
+
+                        <ImageView
+                            android:layout_width="24dp"
+                            android:layout_height="24dp"
+                            android:src="@drawable/ic_info"
+                            app:tint="#757575"
+                            android:layout_gravity="center_vertical" />
+
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="vertical"
+                            android:layout_marginStart="16dp">
+
+                            <TextView
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:text="Emergency Mode is Inactive"
+                                android:textColor="#000000"
+                                android:textSize="16sp"
+                                android:textStyle="bold" />
+
+                            <TextView
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:text="Emergency Mode sends high-priority notifications to all compatible donors in your area. Please only activate for genuine medical emergencies."
+                                android:textColor="#757575"
+                                android:textSize="14sp"
+                                android:layout_marginTop="4dp" />
+                        </LinearLayout>
+                    </LinearLayout>
+                </androidx.cardview.widget.CardView>
+
+                <!-- Emergency Blood Request Card -->
+                <androidx.cardview.widget.CardView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="16dp"
+                    app:cardCornerRadius="8dp"
+                    app:cardElevation="2dp">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:padding="16dp">
+
+                        <!-- Emergency Blood Request Header -->
+                        <TextView
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:text="Emergency Blood Request"
+                            android:textColor="#000000"
+                            android:textSize="18sp"
+                            android:textStyle="bold" />
+
+                        <TextView
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:text="Use this feature only in critical situations when blood is needed urgently"
+                            android:textColor="#757575"
+                            android:textSize="14sp"
+                            android:layout_marginTop="4dp"
+                            android:layout_marginBottom="16dp" />
+
+                        <!-- Activate Switch -->
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="horizontal"
+                            android:layout_marginBottom="16dp">
+
+                            <androidx.appcompat.widget.SwitchCompat
+                                android:id="@+id/activateSwitch"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_gravity="center_vertical" />
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="Activate Emergency Mode"
+                                android:textColor="#000000"
+                                android:textSize="16sp"
+                                android:layout_marginStart="16dp" />
+                        </LinearLayout>
+
+                        <!-- Warning Notice -->
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="horizontal"
+                            android:background="#FFEBEE"
+                            android:padding="16dp"
+                            android:layout_marginBottom="16dp">
+
+                            <ImageView
+                                android:layout_width="24dp"
+                                android:layout_height="24dp"
+                                android:src="@drawable/ic_warning"
+                                app:tint="#F44336"
+                                android:layout_gravity="center_vertical" />
+
+                            <LinearLayout
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:orientation="vertical"
+                                android:layout_marginStart="16dp">
+
+                                <TextView
+                                    android:layout_width="match_parent"
+                                    android:layout_height="wrap_content"
+                                    android:text="Important Notice"
+                                    android:textColor="#F44336"
+                                    android:textSize="16sp"
+                                    android:textStyle="bold" />
+
+                                <TextView
+                                    android:layout_width="match_parent"
+                                    android:layout_height="wrap_content"
+                                    android:text="Emergency Mode should only be used for genuine medical emergencies requiring immediate blood donation. Misuse of this feature may result in account restrictions"
+                                    android:textColor="#F44336"
+                                    android:textSize="14sp"
+                                    android:layout_marginTop="4dp" />
+                            </LinearLayout>
+                        </LinearLayout>
+
+                        <!-- Emergency Type -->
+                        <TextView
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:text="Emergency Type"
+                            android:textColor="#000000"
+                            android:textSize="16sp"
+                            android:textStyle="bold"
+                            android:layout_marginBottom="12dp" />
+
+                        <!-- Personal Emergency -->
+                        <RadioGroup
+                            android:id="@+id/emergencyTypeRadioGroup"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginBottom="16dp">
+
+                            <RadioButton
+                                android:id="@+id/radioPersonalEmergency"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:background="@drawable/radio_button_background"
+                                android:padding="16dp"
+                                android:checked="true"
+                                android:layout_marginBottom="8dp"
+                                android:text="Personal Emergency"
+                                android:textColor="#000000"
+                                android:textSize="16sp" />
+
+                            <TextView
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:text="You or a family member needs blood urgently"
+                                android:textColor="#757575"
+                                android:textSize="14sp"
+                                android:layout_marginStart="32dp"
+                                android:layout_marginBottom="16dp" />
+
+                            <!-- Hospital Request -->
+                            <RadioButton
+                                android:id="@+id/radioHospitalRequest"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:background="@drawable/radio_button_background"
+                                android:padding="16dp"
+                                android:layout_marginBottom="8dp"
+                                android:text="Hospital Request"
+                                android:textColor="#000000"
+                                android:textSize="16sp" />
+
+                            <TextView
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:text="You're requesting on behalf of a hospital or medical facility"
+                                android:textColor="#757575"
+                                android:textSize="14sp"
+                                android:layout_marginStart="32dp"
+                                android:layout_marginBottom="16dp" />
+
+                            <!-- Disaster Response -->
+                            <RadioButton
+                                android:id="@+id/radioDisasterResponse"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:background="@drawable/radio_button_background"
+                                android:padding="16dp"
+                                android:layout_marginBottom="8dp"
+                                android:text="Disaster Response"
+                                android:textColor="#000000"
+                                android:textSize="16sp" />
+
+                            <TextView
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:text="Blood needed for multiple victims of a disaster or accident"
+                                android:textColor="#757575"
+                                android:textSize="14sp"
+                                android:layout_marginStart="32dp"
+                                android:layout_marginBottom="16dp" />
+                        </RadioGroup>
+
+                        <!-- Blood Type and Units Needed -->
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="horizontal"
+                            android:layout_marginBottom="16dp">
+
+                            <LinearLayout
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="1"
+                                android:orientation="vertical"
+                                android:layout_marginEnd="8dp">
+
+                                <TextView
+                                    android:layout_width="match_parent"
+                                    android:layout_height="wrap_content"
+                                    android:text="Blood Type Needed"
+                                    android:textColor="#000000"
+                                    android:textSize="16sp"
+                                    android:textStyle="bold"
+                                    android:layout_marginBottom="8dp" />
+
+                                <Spinner
+                                    android:id="@+id/bloodTypeSpinner"
+                                    android:layout_width="match_parent"
+                                    android:layout_height="wrap_content"
+                                    android:background="@drawable/spinner_background"
+                                    android:padding="12dp"
+                                    android:spinnerMode="dropdown"
+                                    android:prompt="@string/select_blood_type" />
+                            </LinearLayout>
+
+                            <LinearLayout
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="1"
+                                android:orientation="vertical"
+                                android:layout_marginStart="8dp">
+
+                                <TextView
+                                    android:layout_width="match_parent"
+                                    android:layout_height="wrap_content"
+                                    android:text="Units Needed"
+                                    android:textColor="#000000"
+                                    android:textSize="16sp"
+                                    android:textStyle="bold"
+                                    android:layout_marginBottom="8dp" />
+
+                                <Spinner
+                                    android:id="@+id/unitsSpinner"
+                                    android:layout_width="match_parent"
+                                    android:layout_height="wrap_content"
+                                    android:background="@drawable/spinner_background"
+                                    android:padding="12dp"
+                                    android:spinnerMode="dropdown"
+                                    android:prompt="@string/select_units" />
+                            </LinearLayout>
+                        </LinearLayout>
+
+                        <!-- Hospital/Treatment Location -->
+                        <TextView
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:text="Hospital/Treatment Location"
+                            android:textColor="#000000"
+                            android:textSize="16sp"
+                            android:textStyle="bold"
+                            android:layout_marginBottom="8dp" />
+
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="horizontal"
+                            android:layout_marginBottom="16dp">
+
+                            <EditText
+                                android:id="@+id/locationEditText"
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="1"
+                                android:background="@drawable/edit_text_background"
+                                android:drawableStart="@drawable/ic_location"
+                                android:drawablePadding="8dp"
+                                android:hint="Enter hospital or treatment location"
+                                android:padding="12dp"
+                                android:textSize="14sp"
+                                android:layout_marginEnd="8dp" />
+
+                            <Button
+                                android:id="@+id/btnUseCurrentLocation"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="Use Current"
+                                android:textColor="#000000"
+                                android:backgroundTint="#FFFFFF"
+                                android:stateListAnimator="@null"
+                                app:strokeColor="#CCCCCC"
+                                app:strokeWidth="1dp" />
+                        </LinearLayout>
+
+                        <!-- Reason for Emergency -->
+                        <TextView
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:text="Reason for Emergency"
+                            android:textColor="#000000"
+                            android:textSize="16sp"
+                            android:textStyle="bold"
+                            android:layout_marginBottom="8dp" />
+
+                        <Spinner
+                            android:id="@+id/reasonSpinner"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:background="@drawable/spinner_background"
+                            android:padding="12dp"
+                            android:spinnerMode="dropdown"
+                            android:prompt="@string/select_reason"
+                            android:layout_marginBottom="16dp" />
+
+                        <!-- Additional Information -->
+                        <TextView
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:text="@string/additional_information"
+                            android:textColor="#000000"
+                            android:textSize="16sp"
+                            android:textStyle="bold"
+                            android:layout_marginBottom="8dp" />
+
+                        <EditText
+                            android:id="@+id/additionalInfoEditText"
+                            android:layout_width="match_parent"
+                            android:layout_height="120dp"
+                            android:background="@drawable/edit_text_background"
+                            android:gravity="top"
+                            android:hint= "@string/provide_any_additional_information_that_might_help_donors_understand_the_urgency"
+                            android:inputType="textMultiLine"
+                            android:padding="12dp"
+                            android:textSize="14sp"
+                            android:layout_marginBottom="16dp" />
+
+                        <!-- Emergency Contact Name -->
+                        <TextView
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:text="@string/emergency_contact_name"
+                            android:textColor="#000000"
+                            android:textSize="16sp"
+                            android:textStyle="bold"
+                            android:layout_marginBottom="8dp" />
+
+                        <EditText
+                            android:id="@+id/contactNameEditText"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:background="@drawable/edit_text_background"
+                            android:hint= "Name of person to contact at the location"
+                            android:inputType="textPersonName"
+                            android:padding="12dp"
+                            android:textSize="14sp"
+                            android:layout_marginBottom="16dp" />
+
+                        <!-- Emergency Contact Phone and Role -->
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="horizontal"
+                            android:layout_marginBottom="16dp">
+
+                            <LinearLayout
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="1"
+                                android:orientation="vertical"
+                                android:layout_marginEnd="8dp">
+
+                                <TextView
+                                    android:layout_width="match_parent"
+                                    android:layout_height="wrap_content"
+                                    android:text="Emergency Contact Phone"
+                                    android:textColor="#000000"
+                                    android:textSize="16sp"
+                                    android:textStyle="bold"
+                                    android:layout_marginBottom="8dp" />
+
+                                <EditText
+                                    android:id="@+id/contactPhoneEditText"
+                                    android:layout_width="match_parent"
+                                    android:layout_height="wrap_content"
+                                    android:background="@drawable/edit_text_background"
+                                    android:hint="@string/phone_number"
+                                    android:inputType="phone"
+                                    android:padding="12dp"
+                                    android:textSize="14sp" />
+                            </LinearLayout>
+
+                            <LinearLayout
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="1"
+                                android:orientation="vertical"
+                                android:layout_marginStart="8dp">
+
+                                <TextView
+                                    android:layout_width="match_parent"
+                                    android:layout_height="wrap_content"
+                                    android:text="Contact's Role"
+                                    android:textColor="#000000"
+                                    android:textSize="16sp"
+                                    android:textStyle="bold"
+                                    android:layout_marginBottom="8dp" />
+
+                                <Spinner
+                                    android:id="@+id/roleSpinner"
+                                    android:layout_width="match_parent"
+                                    android:layout_height="wrap_content"
+                                    android:background="@drawable/spinner_background"
+                                    android:padding="12dp"
+                                    android:spinnerMode="dropdown"
+                                    android:prompt="@string/select_role" />
+                            </LinearLayout>
+                        </LinearLayout>
+
+                        <!-- Activate Button -->
+                        <Button
+                            android:id="@+id/btnActivateEmergency"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:backgroundTint="#FF5252"
+                            android:padding="16dp"
+                            android:text="Activate Emergency Mode"
+                            android:textColor="#FFFFFF"
+                            android:textSize="16sp"
+                            android:textStyle="bold"
+                            android:layout_marginBottom="8dp" />
+
+                        <TextView
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:text="By activating Emergency Mode, you confirm that this is a genuine medical emergency requiring immediate blood donation."
+                            android:textColor="#757575"
+                            android:textSize="12sp"
+                            android:gravity="center" />
+                    </LinearLayout>
+                </androidx.cardview.widget.CardView>
+            </LinearLayout>
+        </androidx.core.widget.NestedScrollView>
+    </androidx.coordinatorlayout.widget.CoordinatorLayout>
+
+    <!-- Navigation Drawer -->
+    <com.google.android.material.navigation.NavigationView
+        android:id="@+id/navigationView"
+        android:layout_width="wrap_content"
+        android:layout_height="match_parent"
+        android:layout_gravity="start"
+        android:fitsSystemWindows="true"
+        app:headerLayout="@layout/nav_header"
+        app:menu="@menu/nav_menu" />
+</androidx.drawerlayout.widget.DrawerLayout>

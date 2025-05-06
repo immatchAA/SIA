@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item
+        android:id="@+id/nav_dashboard"
+        android:icon="@drawable/ic_dashboard"
+        android:title="Dashboard" />
+
+    <item
+        android:id="@+id/nav_profile"
+        android:icon="@drawable/ic_profile"
+        android:title="My Profile" />
+
+    <item
+        android:id="@+id/nav_request_blood"
+        android:icon="@drawable/ic_blood_drop"
+        android:title="Request Blood" />
+
+    <item
+        android:id="@+id/nav_donation_history"
+        android:icon="@drawable/ic_history"
+        android:title="Donation History" />
+
+    <item
+        android:id="@+id/nav_notifications"
+        android:icon="@drawable/ic_notifications"
+        android:title="Notifications" />
+
+
+    <item
+        android:id="@+id/nav_donation_drives"
+        android:icon="@drawable/ic_calendar"
+        android:title="Donation Drives" />
+
+    <item
+        android:id="@+id/nav_emergency"
+        android:icon="@drawable/ic_emergency"
+        android:title="Emergency Mode" />
+</menu>

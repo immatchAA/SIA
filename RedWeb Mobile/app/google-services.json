@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "890928657327",
+    "project_id": "redweb-52924",
+    "storage_bucket": "redweb-52924.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:890928657327:android:dd01132e120e976f1eb55a",
+        "android_client_info": {
+          "package_name": "com.example.redweb"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDKSSYxYUsD58ESCmzjEt76TGYYy2wgDFQ"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

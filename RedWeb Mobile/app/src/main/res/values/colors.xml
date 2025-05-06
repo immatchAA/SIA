@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="purple_200">#E6D4F0</color>
+    <color name="purple_500">#9C27B0</color>
+    <color name="purple_700">#7B1FA2</color>
+    <color name="red_600">#DC2626</color>
+    <color name="red_700">#B91C1C</color>
+    <color name="red_800">#991B1B</color>
+    <color name="gray_200">#E5E7EB</color>
+    <color name="gray_600">#4B5563</color>
+
+    <color name="colorPrimary">#E32929</color>
+    <color name="colorPrimaryDark">#C62828</color>
+    <color name="colorAccent">#FF5252</color>
+
+    <color name="red_primary">#E32929</color>
+    <color name="red_light">#FF5F52</color>
+    <color name="red_dark">#A80000</color>
+
+    <color name="black">#FF000000</color>
+    <color name="white">#FFFFFFFF</color>
+    <color name="gray">#808080</color>
+    <color name="dark_gray">#404040</color>
+    <color name="light_gray">#DDDDDD</color>
+
+
+    <!-- UI colors -->
+    <color name="background_light">#FFFAFA</color>
+    <color name="stroke_color">#E0E0E0</color>
+
+    <!-- Text colors -->
+    <color name="text_primary">#212121</color>
+    <color name="text_secondary">#757575</color>
+
+</resources>
