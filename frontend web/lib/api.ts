@@ -1,8 +1,39 @@
 // Frontend API service to connect with the backend
 
-// Base API URL - Fixed to ensure consistency
-const API_URL = 'http://localhost:8080';
-const PUBLIC_API_URL = 'http://localhost:8080';  // Changed to use the root URL
+// Base API URL - Dynamic to work in both development and production
+const getBaseUrl = async () => {
+  // Check if we're in a browser environment
+  if (typeof window === 'undefined') return '';
+  
+  try {
+    const response = await fetch('/api/config');
+    const config = await response.json();
+    
+    // Use backendUrl from config if available, otherwise fall back to relative URL
+    return config.backendUrl || (window.location.hostname !== 'localhost' ? '' : 'http://localhost:8080');
+  } catch (error) {
+    console.error('Failed to fetch config:', error);
+    // Fall back to relative URL in production, localhost in development
+    return window.location.hostname !== 'localhost' ? '' : 'http://localhost:8080';
+  }
+};
+
+// Initialize API_URL with a default value that will be updated when config is fetched
+let API_URL = '';
+let PUBLIC_API_URL = '';
+
+// Update API_URL when config is fetched
+getBaseUrl().then(baseUrl => {
+  // Use the proxy endpoint for API requests
+  API_URL = '/api';
+  PUBLIC_API_URL = baseUrl;
+});
+
+// Update API_URL when config is fetched
+getBaseUrl().then(baseUrl => {
+  API_URL = baseUrl;
+  PUBLIC_API_URL = baseUrl;
+});
 
 // Simple utility to check if the API is accessible - export it for use in other functions
 export const checkApiStatus = async () => {
@@ -44,91 +75,71 @@ const getAuthHeaders = () => {
 
 // Authentication API functions
 export const authAPI = {
-  // Login function with enhanced error handling and test account fallback
+  // Forgot password function
+  forgotPassword: async (email: string) => {
+    try {
+      console.log('Sending forgot password request for:', email);
+      
+      // Check if API is available
+      const apiAvailable = await isApiAvailable();
+      if (!apiAvailable) {
+        console.error('API not available');
+        return {
+          success: false,
+          message: 'Backend server not available'
+        };
+      }
+      
+      // Make the request
+      const response = await fetch(`${API_URL}/api/auth/forgot-password`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          email
+        })
+      });
+      
+      if (!response.ok) {
+        const error = await response.json().catch(() => ({ message: 'Failed to send password reset instructions' }));
+        console.error('Forgot password failed:', error);
+        return {
+          success: false,
+          message: error.message || 'Failed to send password reset instructions'
+        };
+      }
+      
+      const data = await response.json();
+      console.log('Forgot password response:', data);
+      
+      return {
+        success: true,
+        message: 'Password reset instructions have been sent to your email'
+      };
+    } catch (error) {
+      console.error('Forgot password error:', error);
+      return {
+        success: false,
+        message: 'An error occurred while processing your request'
+      };
+    }
+  },
+
+  // Login function with enhanced error handling
   login: async (email: string, password: string) => {
     try {
       console.log('Attempting login for email:', email);
       console.log('Using API URL:', API_URL);
       
-      // Check for test accounts first (these will work even if backend is down)
-      if ((email === 'test@redweb.com' && password === 'testpassword') || email.includes('test')) {
-        console.log('Using test account login');
-        localStorage.setItem('authToken', 'mock-jwt-token-for-testing');
-        
-        // Create a more complete test user with all profile fields
-        const firstName = email.includes('sophie') ? 'Sophie' : 'Test';
-        const lastName = email.includes('sophie') ? 'Smith' : 'User';
-        const fullName = `${firstName} ${lastName}`;
-        
-        const testUser = {
-          id: '999-' + Date.now().toString(),
-          email: email,
-          role: 'DONOR',
-          name: fullName,
-          firstName: firstName,
-          lastName: lastName,
-          bloodType: 'O+',
-          phone: '555-123-4567',
-          address: '123 Test Street',
-          city: 'Test City',
-          state: 'Test State',
-          zipCode: '12345',
-          gender: 'female',
-          age: '25',
-          weight: '60',
-          height: '165',
-          createdAt: new Date().toISOString(),
-          profilePicture: email.includes('sophie') ? '/images/profile-sophie.jpg' : ''
-        };
-        
-        localStorage.setItem('user', JSON.stringify(testUser));
-        
+      // Check if API is available
+      const apiAvailable = await isApiAvailable();
+      if (!apiAvailable) {
+        console.error('API not available');
         return {
-          success: true,
-          accessToken: 'mock-jwt-token-for-testing',
-          userId: testUser.id,
-          email: email,
-          role: 'DONOR',
-          firstName: firstName,
-          lastName: lastName
+          success: false,
+          message: 'Backend server not available'
         };
-      }
-      
-      // For non-test accounts, verify API is accessible first
-      try {
-        const apiAvailable = await checkApiStatus();
-        
-        if (!apiAvailable) {
-          console.warn('Backend API is not accessible - using offline login mode');
-          
-          // Create offline login option for demonstration
-          const demoId = 'offline-' + Date.now();
-          const demoToken = 'offline-token-' + demoId;
-          
-          // Store in local storage just like a real login
-          localStorage.setItem('authToken', demoToken);
-          const offlineUser = {
-            id: demoId,
-            email: email,
-            role: 'DONOR',
-            name: email.split('@')[0]
-          };
-          localStorage.setItem('user', JSON.stringify(offlineUser));
-          
-          return {
-            success: true,
-            accessToken: demoToken,
-            userId: demoId,
-            email: email,
-            role: 'DONOR',
-            firstName: email.split('@')[0],
-            lastName: 'User',
-            offlineMode: true
-          };
-        }
-      } catch (e) {
-        console.warn('API status check failed, but continuing with login attempt:', e);
-        // Continue anyway - the status check might fail but login could still work
       }
       
       console.log('Sending login request with credentials:', { email, passwordLength: password?.length || 0 });
@@ -239,7 +250,7 @@ export const authAPI = {
   registerDonor: async (donorData: any) => {
     try {
       console.log('Attempting donor registration with data:', donorData);
-      const response = await fetch(`${API_URL}/api/auth/register/donor`, {
+      const response = await fetch(`${API_URL}/api/auth/register/user`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
@@ -456,7 +467,7 @@ export const authAPI = {
       console.log('Making patient registration request with data:', logData);
       
       // Direct approach to bypass authentication issues
-      const apiEndpoint = `${API_URL}/api/auth/register/patient`;
+      const apiEndpoint = `${PUBLIC_API_URL}/api/auth/register/user`; // Consistent with mobile app
       console.log('Sending direct request to:', apiEndpoint);
       
       const response = await fetch(apiEndpoint, {
@@ -864,7 +875,7 @@ export const userAPI = {
       }
       
       // Get mock donation count (only for returning users)
-      const hash = email.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
+      const hash = email.split('').reduce((acc: number, char: string) => acc + char.charCodeAt(0), 0);
       const donationCount = Math.max(1, (hash % 5));
 
       console.log(`Generating ${donationCount} mock donations for user ${email}`);
@@ -899,6 +910,149 @@ export const userAPI = {
       return mockDonations;
     } catch (error) {
       console.error('Error generating mock donation history:', error);
+      return [];
+    }
+  }
+};
+
+// Blood request API functions to match mobile app endpoints
+export const bloodRequestAPI = {
+  // Submit a blood request - matches mobile endpoint: api/blood-request/create
+  submitBloodRequest: async (bloodRequestData: any) => {
+    try {
+      console.log('Submitting blood request with data:', bloodRequestData);
+      console.log('Using API URL:', API_URL ? API_URL : '(relative URL)');
+      
+      // Check if API is available
+      const apiAvailable = await isApiAvailable();
+      if (!apiAvailable) {
+        console.warn('API not available, using mock response for blood request');
+        return {
+          success: true,
+          id: 'local-' + Date.now(),
+          message: 'Blood request submitted in offline mode'
+        };
+      }
+      
+      // Make the request to the same endpoint as mobile app
+      // Use a relative URL if API_URL is empty (production) or the full URL in development
+      const endpoint = API_URL ? `${API_URL}/api/blood-request/create` : '/api/blood-request/create';
+      console.log('Making request to endpoint:', endpoint);
+      
+      const response = await fetch(endpoint, {
+        method: 'POST',
+        headers: {
+          ...getAuthHeaders(),
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(bloodRequestData)
+      });
+      
+      if (!response.ok) {
+        console.error(`Blood request submission failed with status: ${response.status}`);
+        return {
+          success: false,
+          error: `Failed to submit blood request: ${response.statusText}`
+        };
+      }
+      
+      // Handle the response
+      try {
+        const data = await response.json();
+        return {
+          success: true,
+          ...data
+        };
+      } catch (e) {
+        // If we can't parse JSON, still return success since the request succeeded
+        return {
+          success: true,
+          message: 'Blood request submitted successfully'
+        };
+      }
+    } catch (error) {
+      console.error('Error submitting blood request:', error);
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : 'An unexpected error occurred'
+      };
+    }
+  },
+  
+  // Get blood requests for a specific user - matches mobile endpoint: api/blood-request/user/{email}
+  getBloodRequestsByUser: async (email: string) => {
+    try {
+      const user = getCurrentUser();
+      if (!user) {
+        console.warn('No authenticated user for blood requests');
+        return [];
+      }
+      
+      // Use email from parameters or fall back to current user
+      const userEmail = email || user.email;
+      if (!userEmail) {
+        console.warn('No email provided for blood requests');
+        return [];
+      }
+      
+      // Check if API is available
+      const apiAvailable = await isApiAvailable();
+      if (!apiAvailable) {
+        console.warn('API not available, using mock data for blood requests');
+        // Return empty array for new users or test data for others
+        return [];
+      }
+      
+      // Make the request to the same endpoint as mobile app
+      // Use a relative URL if API_URL is empty (production) or the full URL in development
+      const endpoint = API_URL ? `${API_URL}/api/blood-request/user/${encodeURIComponent(userEmail)}` : `/api/blood-request/user/${encodeURIComponent(userEmail)}`;
+      console.log('Making request to endpoint:', endpoint);
+      
+      const response = await fetch(endpoint, {
+        method: 'GET',
+        headers: getAuthHeaders()
+      });
+      
+      if (!response.ok) {
+        console.error(`Failed to get blood requests: ${response.status}`);
+        return [];
+      }
+      
+      return await response.json();
+    } catch (error) {
+      console.error('Error getting blood requests:', error);
+      return [];
+    }
+  },
+  
+  // Get all blood requests - matches mobile endpoint: /api/blood-request/get
+  getAllBloodRequests: async () => {
+    try {
+      // Check if API is available
+      const apiAvailable = await isApiAvailable();
+      if (!apiAvailable) {
+        console.warn('API not available, using mock data for all blood requests');
+        return [];
+      }
+      
+      // Make the request to the same endpoint as mobile app
+      // Use a relative URL if API_URL is empty (production) or the full URL in development
+      const endpoint = API_URL ? `${API_URL}/api/blood-request/get` : '/api/blood-request/get';
+      console.log('Making request to endpoint:', endpoint);
+      
+      const response = await fetch(endpoint, {
+        method: 'GET',
+        headers: getAuthHeaders()
+      });
+      
+      if (!response.ok) {
+        console.error(`Failed to get all blood requests: ${response.status}`);
+        return [];
+      }
+      
+      return await response.json();
+    } catch (error) {
+      console.error('Error getting all blood requests:', error);
       return [];
     }
   }
