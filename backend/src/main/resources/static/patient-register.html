@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Patient Registration</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        input, select, textarea {
+            width: 100%;
+            padding: 8px;
+            box-sizing: border-box;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        button {
+            padding: 10px 15px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        #result {
+            margin-top: 20px;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            display: none;
+        }
+        .success {
+            background-color: #dff0d8;
+            color: #3c763d;
+        }
+        .error {
+            background-color: #f2dede;
+            color: #a94442;
+        }
+    </style>
+</head>
+<body>
+    <h1>Patient Registration</h1>
+    <p>Use this form to register as a patient. Fields marked with * are required.</p>
+    
+    <form id="registrationForm">
+        <div class="form-group">
+            <label for="firstName">First Name *</label>
+            <input type="text" id="firstName" name="firstName" required>
+        </div>
+        
+        <div class="form-group">
+            <label for="lastName">Last Name *</label>
+            <input type="text" id="lastName" name="lastName" required>
+        </div>
+        
+        <div class="form-group">
+            <label for="email">Email *</label>
+            <input type="email" id="email" name="email" required>
+        </div>
+        
+        <div class="form-group">
+            <label for="password">Password *</label>
+            <input type="password" id="password" name="password" required>
+        </div>
+        
+        <div class="form-group">
+            <label for="phone">Phone Number *</label>
+            <input type="text" id="phone" name="phone" required>
+        </div>
+        
+        <div class="form-group">
+            <label for="bloodType">Blood Type *</label>
+            <select id="bloodType" name="bloodType" required>
+                <option value="">Select Blood Type</option>
+                <option value="A+">A+</option>
+                <option value="A-">A-</option>
+                <option value="B+">B+</option>
+                <option value="B-">B-</option>
+                <option value="AB+">AB+</option>
+                <option value="AB-">AB-</option>
+                <option value="O+">O+</option>
+                <option value="O-">O-</option>
+            </select>
+        </div>
+        
+        <div class="form-group">
+            <label for="hospitalLocation">Hospital Location *</label>
+            <input type="text" id="hospitalLocation" name="hospitalLocation" required>
+        </div>
+        
+        <div class="form-group">
+            <label for="medicalConditions">Medical Conditions</label>
+            <textarea id="medicalConditions" name="medicalConditions" rows="3"></textarea>
+        </div>
+        
+        <div class="form-group">
+            <label for="medications">Current Medications</label>
+            <textarea id="medications" name="medications" rows="3"></textarea>
+        </div>
+        
+        <div class="form-group">
+            <label for="verificationDocument">Medical Verification Document</label>
+            <input type="file" id="verificationDocument" name="verificationDocument">
+        </div>
+        
+        <div class="form-group">
+            <input type="hidden" id="latitude" name="latitude" value="14.5995">
+            <input type="hidden" id="longitude" name="longitude" value="120.9842">
+        </div>
+        
+        <button type="submit">Register</button>
+    </form>
+    
+    <div id="result"></div>
+    
+    <script>
+        document.getElementById('registrationForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const resultDiv = document.getElementById('result');
+            resultDiv.className = '';
+            resultDiv.style.display = 'block';
+            resultDiv.innerHTML = 'Processing registration...';
+            
+            try {
+                // Get form data
+                const formData = new FormData(this);
+                const registrationData = {};
+                
+                // Convert form data to JSON object
+                for (const [key, value] of formData.entries()) {
+                    if (key !== 'verificationDocument') {
+                        registrationData[key] = value;
+                    }
+                }
+                
+                // Handle the verification document
+                const fileInput = document.getElementById('verificationDocument');
+                if (fileInput.files.length > 0) {
+                    const file = fileInput.files[0];
+                    registrationData.verificationDocumentFilename = file.name;
+                    
+                    // Convert file to Base64
+                    const fileReader = new FileReader();
+                    fileReader.onload = async function(fileEvent) {
+                        registrationData.verificationDocumentBase64 = fileEvent.target.result;
+                        
+                        // Send the registration request
+                        await sendRegistration(registrationData, resultDiv);
+                    };
+                    
+                    fileReader.readAsDataURL(file);
+                } else {
+                    // No file provided, just send the registration
+                    await sendRegistration(registrationData, resultDiv);
+                }
+            } catch (error) {
+                resultDiv.className = 'error';
+                resultDiv.innerHTML = `Registration error: ${error.message}`;
+            }
+        });
+        
+        async function sendRegistration(data, resultDiv) {
+            console.log('Sending registration data:', {...data, verificationDocumentBase64: data.verificationDocumentBase64 ? '[BASE64 data omitted]' : null});
+            
+            try {
+                const response = await fetch('/public/register/patient', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(data)
+                });
+                
+                console.log('Registration response status:', response.status);
+                
+                if (response.ok) {
+                    resultDiv.className = 'success';
+                    resultDiv.innerHTML = 'Registration successful! You can now <a href="/login">login</a> to your account.';
+                } else {
+                    let errorMessage = `Registration failed with status: ${response.status}`;
+                    try {
+                        const errorData = await response.json();
+                        if (errorData.error) {
+                            errorMessage = errorData.error;
+                        }
+                    } catch (e) {
+                        // Error response wasn't JSON
+                        try {
+                            const textResponse = await response.text();
+                            if (textResponse) {
+                                errorMessage += '. Server response: ' + textResponse;
+                            }
+                        } catch (e2) {
+                            // Couldn't get response text either
+                        }
+                    }
+                    
+                    resultDiv.className = 'error';
+                    resultDiv.innerHTML = `Registration error: ${errorMessage}`;
+                }
+            } catch (error) {
+                resultDiv.className = 'error';
+                resultDiv.innerHTML = `Registration error: ${error.message}`;
+            }
+        }
+    </script>
+</body>
+</html>

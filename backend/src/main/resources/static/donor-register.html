@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Donor Registration</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        h1 {
+            color: #d32f2f;
+        }
+        form {
+            background-color: #f8f8f8;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+        }
+        input, select {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 20px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 16px;
+        }
+        button {
+            background-color: #d32f2f;
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 500;
+        }
+        button:hover {
+            background-color: #b71c1c;
+        }
+        .result {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 4px;
+        }
+        .success {
+            background-color: #e8f5e9;
+            border: 1px solid #c8e6c9;
+            color: #2e7d32;
+        }
+        .error {
+            background-color: #ffebee;
+            border: 1px solid #ffcdd2;
+            color: #c62828;
+        }
+        .hidden {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <h1>Donor Registration</h1>
+    <p>Fill out the form below to register as a blood donor.</p>
+    
+    <form id="donor-form">
+        <div>
+            <label for="firstName">First Name</label>
+            <input type="text" id="firstName" name="firstName" required>
+        </div>
+        
+        <div>
+            <label for="lastName">Last Name</label>
+            <input type="text" id="lastName" name="lastName" required>
+        </div>
+        
+        <div>
+            <label for="email">Email</label>
+            <input type="email" id="email" name="email" required>
+        </div>
+        
+        <div>
+            <label for="password">Password</label>
+            <input type="password" id="password" name="password" required>
+        </div>
+        
+        <div>
+            <label for="phone">Phone Number</label>
+            <input type="tel" id="phone" name="phone" required>
+        </div>
+        
+        <div>
+            <label for="bloodType">Blood Type</label>
+            <select id="bloodType" name="bloodType" required>
+                <option value="">Select Blood Type</option>
+                <option value="A_POSITIVE">A+</option>
+                <option value="A_NEGATIVE">A-</option>
+                <option value="B_POSITIVE">B+</option>
+                <option value="B_NEGATIVE">B-</option>
+                <option value="AB_POSITIVE">AB+</option>
+                <option value="AB_NEGATIVE">AB-</option>
+                <option value="O_POSITIVE">O+</option>
+                <option value="O_NEGATIVE">O-</option>
+            </select>
+        </div>
+        
+        <div>
+            <label for="latitude">Latitude (will be auto-filled with your location)</label>
+            <input type="text" id="latitude" name="latitude" required>
+        </div>
+        
+        <div>
+            <label for="longitude">Longitude (will be auto-filled with your location)</label>
+            <input type="text" id="longitude" name="longitude" required>
+        </div>
+        
+        <div>
+            <label for="emergencyOptIn">
+                <input type="checkbox" id="emergencyOptIn" name="emergencyOptIn" style="width: auto; margin-right: 10px;">
+                Opt in for emergency donation requests
+            </label>
+        </div>
+        
+        <button type="submit">Register</button>
+    </form>
+    
+    <div id="result" class="result hidden"></div>
+    
+    <script>
+        // Get user's location
+        if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(function(position) {
+                document.getElementById('latitude').value = position.coords.latitude;
+                document.getElementById('longitude').value = position.coords.longitude;
+            }, function(error) {
+                console.error("Error getting location:", error);
+                // Default to center of Singapore if geolocation fails
+                document.getElementById('latitude').value = 1.3521;
+                document.getElementById('longitude').value = 103.8198;
+            });
+        } else {
+            // Default to center of Singapore if geolocation is not supported
+            document.getElementById('latitude').value = 1.3521;
+            document.getElementById('longitude').value = 103.8198;
+        }
+        
+        // Form submission
+        document.getElementById('donor-form').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const form = e.target;
+            const result = document.getElementById('result');
+            
+            // Get form data
+            const formData = {
+                firstName: form.firstName.value,
+                lastName: form.lastName.value,
+                email: form.email.value,
+                password: form.password.value,
+                phone: form.phone.value,
+                bloodType: form.bloodType.value,
+                latitude: parseFloat(form.latitude.value),
+                longitude: parseFloat(form.longitude.value),
+                emergencyOptIn: form.emergencyOptIn.checked
+            };
+            
+            console.log("Sending data:", formData);
+            
+            try {
+                const response = await fetch('/api/auth/register/donor', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(formData)
+                });
+                
+                result.classList.remove('hidden');
+                
+                if (response.ok) {
+                    let data;
+                    try {
+                        const text = await response.text();
+                        data = text ? JSON.parse(text) : { message: "Registration successful" };
+                    } catch (e) {
+                        data = { message: "Registration successful, but response could not be parsed" };
+                    }
+                    
+                    result.classList.add('success');
+                    result.classList.remove('error');
+                    result.innerHTML = `<h3>Registration Successful!</h3>
+                                       <p>${data.message || "You have been registered as a donor. You can now log in."}</p>`;
+                    
+                    // Clear form
+                    form.reset();
+                } else {
+                    let errorMessage = "Registration failed with status: " + response.status;
+                    
+                    try {
+                        const text = await response.text();
+                        if (text) {
+                            const errorData = JSON.parse(text);
+                            errorMessage = errorData.error || errorMessage;
+                        }
+                    } catch (e) {
+                        console.error("Failed to parse error response:", e);
+                    }
+                    
+                    result.classList.add('error');
+                    result.classList.remove('success');
+                    result.innerHTML = `<h3>Registration Failed</h3><p>${errorMessage}</p>`;
+                }
+            } catch (error) {
+                console.error("Registration error:", error);
+                
+                result.classList.remove('hidden');
+                result.classList.add('error');
+                result.classList.remove('success');
+                result.innerHTML = `<h3>Registration Error</h3><p>${error.message}</p>`;
+            }
+        });
+    </script>
+</body>
+</html>

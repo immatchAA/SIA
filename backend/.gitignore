@@ -1,0 +1,37 @@
+# Java
+*.class
+*.log
+
+# Maven
+.target/
+!.target/eclipse/
+!.target/work/
+*.lastUpdated
+*.markers
+*.prefs
+*.properties
+*.settings
+*.sublime-workspace
+*.sublime-project
+*.swp
+*.swo
+
+# IDE - IntelliJ IDEA
+.idea/
+*.iws
+*.iml
+*.ipr
+
+# IDE - Eclipse
+.settings/
+bin/
+.classpath
+.project
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+logs/
+*.log
