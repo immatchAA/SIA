@@ -29,12 +29,6 @@ getBaseUrl().then(baseUrl => {
   PUBLIC_API_URL = baseUrl;
 });
 
-// Update API_URL when config is fetched
-getBaseUrl().then(baseUrl => {
-  API_URL = baseUrl;
-  PUBLIC_API_URL = baseUrl;
-});
-
 // Simple utility to check if the API is accessible - export it for use in other functions
 export const checkApiStatus = async () => {
   try {
@@ -43,7 +37,7 @@ export const checkApiStatus = async () => {
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), 3000);
     
-    const response = await fetch(`${API_URL}`, {
+    const response = await fetch(`${API_URL}/config`, {
       method: 'HEAD', // Just check if server responds, don't need content
       headers: { 'Accept': 'application/json' },
       // Set a short timeout to avoid long waits
@@ -934,9 +928,8 @@ export const bloodRequestAPI = {
         };
       }
       
-      // Make the request to the same endpoint as mobile app
-      // Use a relative URL if API_URL is empty (production) or the full URL in development
-      const endpoint = API_URL ? `${API_URL}/api/blood-request/create` : '/api/blood-request/create';
+      // Use the proxy endpoint for API requests
+      const endpoint = `${API_URL}/blood-request/create`;
       console.log('Making request to endpoint:', endpoint);
       
       const response = await fetch(endpoint, {

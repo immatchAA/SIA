@@ -12,9 +12,151 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { Calendar, Clock, Droplet, MapPin } from "lucide-react"
 import { DashboardNav } from "@/components/dashboard-nav"
 import { DashboardHeader } from "@/components/dashboard-header"
+import { bloodRequestAPI } from "@/lib/api"
+import { useToast } from "@/components/ui/use-toast"
 
 export default function RequestPage() {
+  // Form state
+  const [bloodType, setBloodType] = useState("")
+  const [units, setUnits] = useState("1")
   const [urgency, setUrgency] = useState("moderate")
+  const [hospital, setHospital] = useState("")
+  const [location, setLocation] = useState("")
+  const [neededByDate, setNeededByDate] = useState("")
+  const [neededByTime, setNeededByTime] = useState("")
+  const [reason, setReason] = useState("")
+  const [notes, setNotes] = useState("")
+  const [contactEmail, setContactEmail] = useState(true)
+  const [contactPhone, setContactPhone] = useState(true)
+  const [contactApp, setContactApp] = useState(true)
+  const [shareContact, setShareContact] = useState(false)
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [emergencyMode, setEmergencyMode] = useState(false)
+  
+  const { toast } = useToast()
+  
+  // Handle form submission
+  const handleSubmitRequest = async () => {
+    console.log('Submit button clicked!');
+    
+    // Debug information
+    console.log('Form data:', {
+      bloodType,
+      units,
+      urgency,
+      hospital,
+      location,
+      neededByDate,
+      neededByTime,
+      reason,
+      notes,
+      contactEmail,
+      contactPhone,
+      contactApp,
+      shareContact,
+      emergencyMode: urgency === "critical" && emergencyMode
+    });
+    // Validate form
+    if (!bloodType) {
+      toast({
+        title: "Error",
+        description: "Please select a blood type",
+        variant: "destructive"
+      })
+      return
+    }
+    
+    if (!hospital) {
+      toast({
+        title: "Error",
+        description: "Please enter a hospital or medical facility",
+        variant: "destructive"
+      })
+      return
+    }
+    
+    if (!reason) {
+      toast({
+        title: "Error",
+        description: "Please select a reason for the request",
+        variant: "destructive"
+      })
+      return
+    }
+    
+    // Set submitting state
+    setIsSubmitting(true)
+    
+    try {
+      // Prepare request data
+      const bloodRequestData = {
+        bloodType,
+        units: parseInt(units),
+        urgency,
+        hospital,
+        location,
+        neededByDate,
+        neededByTime,
+        reason,
+        notes,
+        contactPreferences: {
+          email: contactEmail,
+          phone: contactPhone,
+          app: contactApp,
+          shareContact
+        },
+        emergencyMode: urgency === "critical" && emergencyMode
+      }
+      
+      // Submit request to API
+      console.log('Calling API with data:', bloodRequestData);
+      try {
+        const response = await bloodRequestAPI.submitBloodRequest(bloodRequestData);
+        console.log('API response:', response);
+        
+        if (response.success) {
+          toast({
+            title: "Success",
+            description: "Your blood request has been submitted successfully",
+          });
+          
+          // Reset form
+          setBloodType("");
+          setUnits("1");
+          setUrgency("moderate");
+          setHospital("");
+          setLocation("");
+          setNeededByDate("");
+          setNeededByTime("");
+          setReason("");
+          setNotes("");
+          setEmergencyMode(false);
+        } else {
+          toast({
+            title: "Error",
+            description: response.error || "Failed to submit blood request",
+            variant: "destructive"
+          });
+        }
+      } catch (error) {
+        console.error('Error in API call:', error);
+        toast({
+          title: "Error",
+          description: "Failed to connect to the server",
+          variant: "destructive"
+        });
+      }
+    } catch (error) {
+      console.error("Error submitting blood request:", error)
+      toast({
+        title: "Error",
+        description: "An unexpected error occurred",
+        variant: "destructive"
+      })
+    } finally {
+      setIsSubmitting(false)
+    }
+  }
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -36,7 +178,7 @@ export default function RequestPage() {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div className="space-y-2">
                     <Label htmlFor="blood-type">Blood Type Needed</Label>
-                    <Select>
+                    <Select value={bloodType} onValueChange={setBloodType}>
                       <SelectTrigger id="blood-type">
                         <SelectValue placeholder="Select blood type" />
                       </SelectTrigger>
@@ -54,7 +196,7 @@ export default function RequestPage() {
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="units">Units Needed</Label>
-                    <Select defaultValue="1">
+                    <Select value={units} onValueChange={setUnits}>
                       <SelectTrigger id="units">
                         <SelectValue placeholder="Select units" />
                       </SelectTrigger>
@@ -108,7 +250,11 @@ export default function RequestPage() {
                           Please only use this for genuine emergencies.
                         </p>
                         <div className="flex items-center space-x-2 mt-2">
-                          <Switch id="emergency-mode" />
+                          <Switch 
+                            id="emergency-mode" 
+                            checked={emergencyMode}
+                            onCheckedChange={setEmergencyMode}
+                          />
                           <Label htmlFor="emergency-mode" className="font-medium text-sm text-red-800">
                             Activate Emergency Mode
                           </Label>
@@ -119,15 +265,26 @@ export default function RequestPage() {
                 )}
 
                 <div className="space-y-2">
-                  <Label htmlFor="location">Hospital/Treatment Location</Label>
-                  <div className="flex space-x-2">
-                    <div className="relative flex-1">
-                      <MapPin className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                      <Input id="location" className="pl-9" placeholder="Enter hospital or treatment location" />
-                    </div>
-                    <Button variant="outline" type="button">
-                      Use Current
-                    </Button>
+                  <Label htmlFor="hospital">Hospital/Medical Facility</Label>
+                  <Input 
+                    id="hospital" 
+                    placeholder="Enter hospital or medical facility name" 
+                    value={hospital}
+                    onChange={(e) => setHospital(e.target.value)}
+                  />
+                </div>
+                
+                <div className="space-y-2">
+                  <Label htmlFor="location">Location/Address</Label>
+                  <div className="relative">
+                    <MapPin className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                    <Input 
+                      id="location" 
+                      placeholder="Enter location" 
+                      className="pl-9" 
+                      value={location}
+                      onChange={(e) => setLocation(e.target.value)}
+                    />
                   </div>
                 </div>
 
@@ -136,21 +293,33 @@ export default function RequestPage() {
                     <Label htmlFor="needed-by-date">Needed By (Date)</Label>
                     <div className="relative">
                       <Calendar className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                      <Input id="needed-by-date" type="date" className="pl-9" />
+                      <Input 
+                        id="needed-by-date" 
+                        type="date" 
+                        className="pl-9" 
+                        value={neededByDate}
+                        onChange={(e) => setNeededByDate(e.target.value)}
+                      />
                     </div>
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="needed-by-time">Needed By (Time)</Label>
                     <div className="relative">
                       <Clock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                      <Input id="needed-by-time" type="time" className="pl-9" />
+                      <Input 
+                        id="needed-by-time" 
+                        type="time" 
+                        className="pl-9" 
+                        value={neededByTime}
+                        onChange={(e) => setNeededByTime(e.target.value)}
+                      />
                     </div>
                   </div>
                 </div>
 
                 <div className="space-y-2">
                   <Label htmlFor="reason">Reason for Request</Label>
-                  <Select>
+                  <Select value={reason} onValueChange={setReason}>
                     <SelectTrigger id="reason">
                       <SelectValue placeholder="Select reason" />
                     </SelectTrigger>
@@ -171,6 +340,8 @@ export default function RequestPage() {
                     id="additional-notes"
                     placeholder="Provide any additional information that might be helpful for donors"
                     className="min-h-[100px]"
+                    value={notes}
+                    onChange={(e) => setNotes(e.target.value)}
                   />
                 </div>
 
@@ -178,26 +349,48 @@ export default function RequestPage() {
                   <Label>Contact Preferences</Label>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="flex items-center space-x-2">
-                      <Switch id="contact-email" defaultChecked />
+                      <Switch 
+                        id="contact-email" 
+                        checked={contactEmail} 
+                        onCheckedChange={setContactEmail} 
+                      />
                       <Label htmlFor="contact-email">Email</Label>
                     </div>
                     <div className="flex items-center space-x-2">
-                      <Switch id="contact-phone" defaultChecked />
+                      <Switch 
+                        id="contact-phone" 
+                        checked={contactPhone} 
+                        onCheckedChange={setContactPhone} 
+                      />
                       <Label htmlFor="contact-phone">Phone</Label>
                     </div>
                     <div className="flex items-center space-x-2">
-                      <Switch id="contact-app" defaultChecked />
+                      <Switch 
+                        id="contact-app" 
+                        checked={contactApp} 
+                        onCheckedChange={setContactApp} 
+                      />
                       <Label htmlFor="contact-app">In-App Messaging</Label>
                     </div>
                     <div className="flex items-center space-x-2">
-                      <Switch id="share-contact" />
+                      <Switch 
+                        id="share-contact" 
+                        checked={shareContact} 
+                        onCheckedChange={setShareContact} 
+                      />
                       <Label htmlFor="share-contact">Share Contact with Donors</Label>
                     </div>
                   </div>
                 </div>
               </CardContent>
               <CardFooter className="flex flex-col space-y-4">
-                <Button className="w-full bg-red-600 hover:bg-red-700">Submit Blood Request</Button>
+                <Button 
+                  className="w-full bg-red-600 hover:bg-red-700" 
+                  onClick={handleSubmitRequest}
+                  disabled={isSubmitting}
+                >
+                  {isSubmitting ? "Submitting..." : "Submit Blood Request"}
+                </Button>
                 <p className="text-xs text-center text-muted-foreground">
                   By submitting this request, you confirm that all information provided is accurate and that you have a
                   genuine need for blood donation.
